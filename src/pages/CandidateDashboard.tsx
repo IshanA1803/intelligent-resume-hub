@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +30,8 @@ const CandidateDashboard = () => {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [showAiOverview, setShowAiOverview] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [resumeVersions] = useState<ResumeVersion[]>([
     {
@@ -67,12 +69,64 @@ const CandidateDashboard = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setCurrentFile(file);
-      toast({
-        title: "File uploaded successfully",
-        description: `${file.name} is ready for analysis`,
-      });
+      processFile(file);
     }
+  };
+
+  const processFile = (file: File) => {
+    // Check file type
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a PDF or DOCX file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload a file smaller than 10MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setCurrentFile(file);
+    toast({
+      title: "File uploaded successfully",
+      description: `${file.name} is ready for analysis`,
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      processFile(files[0]);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleAnalyze = async () => {
@@ -179,28 +233,43 @@ const CandidateDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                  <div 
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer ${
+                      isDragActive 
+                        ? 'border-primary bg-primary/5 scale-[1.02]' 
+                        : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                    }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={handleUploadClick}
+                  >
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept=".pdf,.docx"
                       onChange={handleFileUpload}
                       className="hidden"
-                      id="resume-upload"
                     />
-                    <label htmlFor="resume-upload" className="cursor-pointer">
-                      <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      {currentFile ? (
-                        <div>
-                          <p className="font-medium">{currentFile.name}</p>
-                          <p className="text-sm text-muted-foreground">Click to change file</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="font-medium">Drop your resume here</p>
-                          <p className="text-sm text-muted-foreground">or click to browse</p>
-                        </div>
-                      )}
-                    </label>
+                    <FileText className={`h-12 w-12 mx-auto mb-4 transition-colors ${
+                      isDragActive ? 'text-primary' : 'text-muted-foreground'
+                    }`} />
+                    {currentFile ? (
+                      <div>
+                        <p className="font-medium">{currentFile.name}</p>
+                        <p className="text-sm text-muted-foreground">Click to change file or drop a new one</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className={`font-medium transition-colors ${
+                          isDragActive ? 'text-primary' : ''
+                        }`}>
+                          {isDragActive ? 'Drop your resume here' : 'Drop your resume here'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">or click to browse</p>
+                        <p className="text-xs text-muted-foreground mt-2">PDF or DOCX files only (max 10MB)</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
