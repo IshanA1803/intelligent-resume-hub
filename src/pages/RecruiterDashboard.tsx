@@ -67,7 +67,7 @@ const RecruiterDashboard = () => {
     }
   ]);
 
-  const [candidates] = useState<Candidate[]>([
+  const [candidates, setCandidates] = useState<Candidate[]>([
     {
       id: "1",
       name: "John Doe",
@@ -172,7 +172,13 @@ const RecruiterDashboard = () => {
   };
 
   const toggleBookmark = (candidateId: string) => {
-    // In a real app, this would update the backend
+    setCandidates(prevCandidates => 
+      prevCandidates.map(candidate => 
+        candidate.id === candidateId 
+          ? { ...candidate, isBookmarked: !candidate.isBookmarked }
+          : candidate
+      )
+    );
     toast({
       title: "Bookmark updated",
       description: "Candidate bookmark status has been updated",
@@ -329,9 +335,6 @@ const RecruiterDashboard = () => {
                                 }
                               </Button>
                               <Button size="sm" variant="ghost">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost">
                                 <Download className="h-4 w-4" />
                               </Button>
                             </div>
@@ -444,9 +447,6 @@ const RecruiterDashboard = () => {
                             <Badge variant="outline">
                               {job.candidateCount} candidates
                             </Badge>
-                            <Button size="sm" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                            </Button>
                             <Button 
                               size="sm" 
                               variant="ghost" 

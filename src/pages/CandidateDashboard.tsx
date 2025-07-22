@@ -441,9 +441,6 @@ const CandidateDashboard = () => {
                                 {version.score}%
                               </Badge>
                               <Button size="sm" variant="ghost">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost">
                                 <Download className="h-4 w-4" />
                               </Button>
                             </div>
