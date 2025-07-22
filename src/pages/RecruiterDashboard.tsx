@@ -43,7 +43,7 @@ const RecruiterDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState<string>("");
+  const [selectedJobId, setSelectedJobId] = useState<string>("all");
   const [minScore, setMinScore] = useState<number>(0);
   const [topCount, setTopCount] = useState<number>(10);
   const [searchQuery, setSearchQuery] = useState("");
@@ -125,7 +125,7 @@ const RecruiterDashboard = () => {
   });
 
   const filteredCandidates = candidates.filter(candidate => {
-    const matchesJob = selectedJobId ? candidate.matchedJobId === selectedJobId : true;
+    const matchesJob = selectedJobId === "all" ? true : candidate.matchedJobId === selectedJobId;
     const matchesScore = candidate.score >= minScore;
     const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          candidate.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -242,7 +242,7 @@ const RecruiterDashboard = () => {
                         <SelectValue placeholder="All jobs" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All jobs</SelectItem>
+                        <SelectItem value="all">All jobs</SelectItem>
                         {jobDescriptions.map(job => (
                           <SelectItem key={job.id} value={job.id}>
                             {job.title}
